@@ -1,6 +1,8 @@
 package main
 
 import (
+	"image"
+	"image/color"
 	"image/png"
 	"io"
 	"io/ioutil"
@@ -16,49 +18,65 @@ func main() {
 		log.Panicln(err)
 	}
 
-	pic, err := os.Open("purple.png")
+	/*
+		pic, err := os.Open("purple.png")
+		if err != nil {
+			log.Panicln(err)
+		}
+		defer pic.Close()
+
+		file, err := createImage(tempDir, pic)
+		if err != nil {
+			log.Panicln(err)
+		}
+		err = file.Close()
+		if err != nil {
+			log.Panicln(err)
+		}
+		mustOpen(file.Name())
+
+		out, err := os.Create(filepath.Join(tempDir, "picture2.png"))
+		if err != nil {
+			log.Panicln(err)
+		}
+		defer out.Close()
+
+		if _, err = pic.Seek(0, 0); err != nil {
+			log.Panicln("seek", err)
+		}
+
+		err = useImageFuncs(pic, out)
+		if err != nil {
+			log.Panicln("useImageFuncs", err)
+		}
+
+		out.Close()
+		mustOpen(out.Name())
+	*/
+
+	outFile, err := os.Create(filepath.Join(tempDir, "picture3.png"))
 	if err != nil {
 		log.Panicln(err)
 	}
-	defer pic.Close()
 
-	file, err := createImage(tempDir, pic)
+	func() {
+		defer outFile.Close()
+
+		if err = png.Encode(outFile, rainbowPNG{}); err != nil {
+			log.Panicln(err)
+		}
+	}()
+
+	mustOpen(outFile.Name())
+
+}
+
+func mustOpen(fileName string) {
+	cmd := exec.Command("xdg-open", fileName)
+	err := cmd.Run()
 	if err != nil {
 		log.Panicln(err)
 	}
-	err = file.Close()
-	if err != nil {
-		log.Panicln(err)
-	}
-
-	cmd := exec.Command("xdg-open", file.Name())
-	err = cmd.Run()
-	if err != nil {
-		log.Panicln(err)
-	}
-
-	out, err := os.Create(filepath.Join(tempDir, "picture2.png"))
-	if err != nil {
-		log.Panicln(err)
-	}
-	defer out.Close()
-
-	if _, err = pic.Seek(0, 0); err != nil {
-		log.Panicln("seek", err)
-	}
-
-	err = useImageFuncs(pic, out)
-	if err != nil {
-		log.Panicln("useImageFuncs", err)
-	}
-
-	out.Close()
-	cmd2 := exec.Command("xdg-open", out.Name())
-	err = cmd2.Run()
-	if err != nil {
-		log.Panicln("cmd2", err)
-	}
-
 }
 
 func createImage(dir string, img io.Reader) (*os.File, error) {
@@ -90,4 +108,32 @@ func useImageFuncs(imgData io.Reader, imgTarget io.Writer) error {
 	}
 
 	return nil
+}
+
+type rainbowPNG struct{}
+
+func (rainbowPNG) ColorModel() color.Model {
+	return color.RGBAModel
+}
+
+var rect = image.Rectangle{
+	Min: image.Point{0, 0},
+	Max: image.Point{800, 600},
+}
+
+func (rainbowPNG) Bounds() image.Rectangle {
+	return rect
+}
+
+func (rainbowPNG) At(x, y int) color.Color {
+	r := x % 256
+	g := (r + x) % 256
+	b := (r + g + x) % 256
+
+	return color.RGBA{
+		A: 255,
+		R: uint8(r),
+		G: uint8(g),
+		B: uint8(b),
+	}
 }
