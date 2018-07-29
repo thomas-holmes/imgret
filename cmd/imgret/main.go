@@ -102,6 +102,46 @@ func (img bitPNG) At(x, y int) color.Color {
 		r, g, b = 128, 0, 128
 	}
 
+	// Random color shenanigans
+
+	{
+		rBit := (bit + 4) % 8
+		mask = byte(1) << byte(rBit)
+
+		if on && (img.bytes[byt]&mask) > 0 {
+			r, b = 255, 255
+
+		}
+	}
+
+	{
+		rBit := (bit + 6) % 8
+		mask = byte(1) << byte(rBit)
+
+		if on && (img.bytes[byt]&mask) > 0 {
+			b = 200
+		}
+	}
+
+	{
+		rBit := (bit + 2) % 8
+		mask := byte(1) << byte(rBit)
+
+		if on && (img.bytes[byt]&mask) > 0 {
+			r = 64
+		}
+	}
+
+	{
+		rBit := (bit + 7) % 8
+		mask := byte(1) << byte(rBit)
+
+		if on && (img.bytes[byt]&mask) > 0 {
+			g = 196
+			b /= 2
+		}
+	}
+
 	return color.RGBA{
 		A: 255, R: r, G: g, B: b,
 	}
