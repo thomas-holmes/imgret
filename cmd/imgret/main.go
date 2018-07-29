@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"image"
 	"image/color"
 	"image/png"
@@ -10,29 +11,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 func main() {
-	tempDir, err := ioutil.TempDir("", "image")
-	if err != nil {
-		log.Panicln(err)
-	}
-
-	outFile, err := os.Create(filepath.Join(tempDir, "picture3.png"))
-	if err != nil {
-		log.Panicln(err)
-	}
-
-	func() {
-		defer outFile.Close()
-
-		if err = png.Encode(outFile, rainbowPNG{}); err != nil {
-			log.Panicln(err)
-		}
-	}()
-
-	mustOpen(outFile.Name())
-
+	doHashThings(strings.NewReader("Thomas Holmes"))
 }
 
 func mustOpen(fileName string) {
@@ -43,61 +26,70 @@ func mustOpen(fileName string) {
 	}
 }
 
-func createImage(dir string, img io.Reader) (*os.File, error) {
-	file, err := os.Create(filepath.Join(dir, "picture.png"))
-	if err != nil {
-		return nil, err
-	}
-	log.Println("New file", file.Name())
+func doHashThings(r io.Reader) error {
+	h := sha256.New()
+	io.Copy(h, r)
 
-	io.Copy(file, img)
+	sum := h.Sum(nil)
+	log.Println(sum)
+	bp := bitPNG{bytes: sum, mult: 16}
 
-	_, err = file.Seek(0, 0)
-	if err != nil {
-		defer file.Close()
-		return nil, err
-	}
-	return file, nil
-}
-
-func useImageFuncs(imgData io.Reader, imgTarget io.Writer) error {
-	img, err := png.Decode(imgData)
+	dir, err := ioutil.TempDir("", "image")
 	if err != nil {
 		return err
 	}
 
-	err = png.Encode(imgTarget, img)
+	outFile, err := os.Create(filepath.Join(dir, "hashed.png"))
 	if err != nil {
 		return err
 	}
+	defer outFile.Close()
+
+	if err := png.Encode(outFile, bp); err != nil {
+		return err
+	}
+
+	outFile.Close()
+
+	mustOpen(outFile.Name())
 
 	return nil
 }
 
-type rainbowPNG struct{}
+// encodes a 128x128 image
+type bitPNG struct {
+	mult  int
+	bytes []byte
+}
 
-func (rainbowPNG) ColorModel() color.Model {
+func (img bitPNG) ColorModel() color.Model {
 	return color.RGBAModel
 }
 
-var rect = image.Rectangle{
-	Min: image.Point{0, 0},
-	Max: image.Point{800, 600},
+func (img bitPNG) Bounds() image.Rectangle {
+	return image.Rectangle{
+		image.Point{0, 0},
+		image.Point{1024, 1024},
+	}
 }
 
-func (rainbowPNG) Bounds() image.Rectangle {
-	return rect
-}
+func (img bitPNG) At(x, y int) color.Color {
+	x /= 1024 / img.mult
+	y /= 1024 / img.mult
+	pos := x + (y * 16)
+	byt := pos / 8
+	bit := pos % 8
 
-func (rainbowPNG) At(x, y int) color.Color {
-	r := x % 256
-	g := (r + x) % 256
-	b := (r + g + x) % 256
+	mask := byte(1) << byte(bit)
+
+	on := (img.bytes[byt] & mask) > 0
+
+	var r, g, b uint8 = 0, 0, 0
+	if on {
+		r, g, b = 128, 0, 128
+	}
 
 	return color.RGBA{
-		A: 255,
-		R: uint8(r),
-		G: uint8(g),
-		B: uint8(b),
+		A: 255, R: r, G: g, B: b,
 	}
 }
