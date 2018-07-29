@@ -18,42 +18,6 @@ func main() {
 		log.Panicln(err)
 	}
 
-	/*
-		pic, err := os.Open("purple.png")
-		if err != nil {
-			log.Panicln(err)
-		}
-		defer pic.Close()
-
-		file, err := createImage(tempDir, pic)
-		if err != nil {
-			log.Panicln(err)
-		}
-		err = file.Close()
-		if err != nil {
-			log.Panicln(err)
-		}
-		mustOpen(file.Name())
-
-		out, err := os.Create(filepath.Join(tempDir, "picture2.png"))
-		if err != nil {
-			log.Panicln(err)
-		}
-		defer out.Close()
-
-		if _, err = pic.Seek(0, 0); err != nil {
-			log.Panicln("seek", err)
-		}
-
-		err = useImageFuncs(pic, out)
-		if err != nil {
-			log.Panicln("useImageFuncs", err)
-		}
-
-		out.Close()
-		mustOpen(out.Name())
-	*/
-
 	outFile, err := os.Create(filepath.Join(tempDir, "picture3.png"))
 	if err != nil {
 		log.Panicln(err)
