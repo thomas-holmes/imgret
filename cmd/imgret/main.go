@@ -1,21 +1,50 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha256"
+	"encoding/base64"
+	"html/template"
 	"image"
 	"image/color"
 	"image/png"
 	"io"
-	"io/ioutil"
 	"log"
-	"os"
+	"net/http"
 	"os/exec"
-	"path/filepath"
 	"strings"
+	"time"
 )
 
 func main() {
-	doHashThings(strings.NewReader("Thomas Holmes"))
+	mux := http.NewServeMux()
+	mux.HandleFunc("/img/", hashHandler)
+
+	if err := http.ListenAndServe(":30000", mux); err != nil {
+		log.Panicln(err)
+	}
+}
+
+func timer(label string, start time.Time) {
+	log.Println(label, "after", time.Since(start))
+}
+
+func hashHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer(r.URL.Path, time.Now())
+	type data struct {
+		ImageDataBase64 string
+	}
+
+	var buf bytes.Buffer
+	encoder := base64.NewEncoder(base64.StdEncoding, &buf)
+
+	if err := createImage(strings.NewReader(r.URL.Path), encoder); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := t.Execute(w, data{buf.String()}); err != nil {
+		log.Panicln(err)
+	}
 }
 
 func mustOpen(fileName string) {
@@ -26,32 +55,16 @@ func mustOpen(fileName string) {
 	}
 }
 
-func doHashThings(r io.Reader) error {
+func createImage(r io.Reader, w io.Writer) error {
 	h := sha256.New()
 	io.Copy(h, r)
 
 	sum := h.Sum(nil)
-	log.Println(sum)
 	bp := bitPNG{bytes: sum, mult: 16}
 
-	dir, err := ioutil.TempDir("", "image")
-	if err != nil {
+	if err := png.Encode(w, bp); err != nil {
 		return err
 	}
-
-	outFile, err := os.Create(filepath.Join(dir, "hashed.png"))
-	if err != nil {
-		return err
-	}
-	defer outFile.Close()
-
-	if err := png.Encode(outFile, bp); err != nil {
-		return err
-	}
-
-	outFile.Close()
-
-	mustOpen(outFile.Name())
 
 	return nil
 }
@@ -91,5 +104,25 @@ func (img bitPNG) At(x, y int) color.Color {
 
 	return color.RGBA{
 		A: 255, R: r, G: g, B: b,
+	}
+}
+
+var doc = `
+	<!DOCTYPE html>
+	<html>
+	<head></head>
+	<body>
+		<img src="data:image/png;base64,{{ .ImageDataBase64 }}">
+	</body>
+	</html>
+`
+
+var t *template.Template
+
+func init() {
+	var err error
+	t, err = template.New("output.html").Parse(doc)
+	if err != nil {
+		log.Panicln(err)
 	}
 }
