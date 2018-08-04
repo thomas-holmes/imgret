@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/NYTimes/gziphandler"
 	"github.com/go-kit/kit/metrics"
 	"github.com/go-redis/redis"
 	"github.com/joeshaw/envdecode"
@@ -30,7 +31,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/img/", hashHandler)
 
-	if err := http.ListenAndServe(bind, mux); err != nil {
+	if err := http.ListenAndServe(bind, gziphandler.GzipHandler(mux)); err != nil {
 		log.Panicln(err)
 	}
 }

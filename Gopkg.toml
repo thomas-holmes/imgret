@@ -41,3 +41,7 @@
 [[constraint]]
   name = "github.com/go-redis/redis"
   version = "6.13.2"
+
+[[constraint]]
+  name = "github.com/NYTimes/gziphandler"
+  version = "1.0.1"
