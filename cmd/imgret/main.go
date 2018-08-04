@@ -27,6 +27,7 @@ import (
 var provider hmetrics.Provider
 
 func main() {
+	log.Info("Bootin' up")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", hashHandler)
 
@@ -51,10 +52,16 @@ func hashHandler(w http.ResponseWriter, r *http.Request) {
 	key := r.URL.Path
 	var buf bytes.Buffer
 
+	cacheTime := time.Now()
 	if bs, ok := rc.Load(key); ok {
 		_, err := buf.Write(bs)
 		if err != nil {
 			log.WithError(err)
+		} else {
+			log.WithFields(log.Fields{
+				"operation": "cache.load",
+				"duration":  time.Since(cacheTime),
+			}).Info("Loaded from cache")
 		}
 	}
 
