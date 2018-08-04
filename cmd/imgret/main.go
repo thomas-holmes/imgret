@@ -12,19 +12,25 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 	"time"
+
+	newrelic "github.com/newrelic/go-agent"
 )
 
 func main() {
+	key := os.Getenv("NEW_RELIC_LICENSE_KEY")
+	config := newrelic.NewConfig("imgret", key)
+	app, err := newrelic.NewApplication(config)
+	if err != nil {
+		log.Println("Couldn't init newrelic", err)
+	}
+	_ = app
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/img/", hashHandler)
-
-	log.Println("GOMAXPROCS", runtime.GOMAXPROCS(-1))
-	log.Println("Updating maxprocs to maxprocs")
-	runtime.GOMAXPROCS(maxprocs)
 
 	if err := http.ListenAndServe(bind, mux); err != nil {
 		log.Panicln(err)
@@ -166,7 +172,6 @@ var doc = `
 var t *template.Template
 
 var bind string
-var maxprocs int
 
 func init() {
 	var err error
@@ -176,7 +181,6 @@ func init() {
 	}
 
 	flag.StringVar(&bind, "bind", ":30000", "bind address")
-	flag.IntVar(&maxprocs, "maxprocs", runtime.GOMAXPROCS(-1), "Set gomaxprocs")
 
 	flag.Parse()
 }
