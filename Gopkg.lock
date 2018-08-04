@@ -40,6 +40,12 @@
   revision = "1de401e1ba0e5db3e5c15d2faeee777e0b685700"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/joeshaw/envdecode"
+  packages = ["."]
+  revision = "c9e0158544672841c3ebf49308f536d918f2e525"
+
+[[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   revision = "3e01752db0189b9157070a0e1668a620f9a85da2"
@@ -75,6 +81,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3057adc628120a66c0ca5a3118318ed6a1d389da767e89ca405f4c6580bbf4be"
+  inputs-digest = "434e22ad2385223d091d4bd96045e2244419697549b01cafa3c4ba2be9f75956"
   solver-name = "gps-cdcl"
   solver-version = 1

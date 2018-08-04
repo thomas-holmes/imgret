@@ -16,12 +16,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/heroku/x/go-kit/metrics"
+	"github.com/go-kit/kit/metrics"
+	"github.com/joeshaw/envdecode"
+
+	hmetrics "github.com/heroku/x/go-kit/metrics"
 	"github.com/heroku/x/go-kit/metrics/provider/librato"
 	log "github.com/sirupsen/logrus"
 )
 
-var provider metrics.Provider
+var provider hmetrics.Provider
 
 func main() {
 	mux := http.NewServeMux()
@@ -72,9 +75,11 @@ func createImage(r io.Reader, w io.Writer) error {
 	sum := h.Sum(nil)
 	bp := bitPNG{bytes: sum, mult: 16}
 
+	b := time.Now()
 	if err := png.Encode(w, bp); err != nil {
 		return err
 	}
+	encodeHisto.Observe(float64(time.Since(b) * time.Millisecond))
 
 	return nil
 }
@@ -170,8 +175,12 @@ var doc = `
 var t *template.Template
 
 var bind string
+var encodeHisto metrics.Histogram
 
-var encodeHist metrics.Histogram
+type config struct {
+	LibratoUser     string `env:"LIBRATO_USER"`
+	LibratoPassword string `env:"LIBRATO_TOKEN"`
+}
 
 func init() {
 	log.SetFormatter(&log.TextFormatter{})
@@ -186,11 +195,18 @@ func init() {
 
 	flag.Parse()
 
+	var cfg config
+	if err = envdecode.Decode(&cfg); err != nil {
+		log.Warn(err)
+	}
+
 	libratoURL, err := url.Parse("https://metrics-api.librato.com/v1/measurements")
 	if err != nil {
 		log.Panic(err)
 	}
+	libratoURL.User = url.UserPassword(cfg.LibratoUser, cfg.LibratoPassword)
+
 	provider = librato.New(libratoURL, time.Duration(30*time.Second))
 
-	encodeHist = provider.NewHistogram("encode.time", 3)
+	encodeHisto = provider.NewHistogram("encode.time", 3)
 }

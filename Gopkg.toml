@@ -33,3 +33,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/heroku/x"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/joeshaw/envdecode"
