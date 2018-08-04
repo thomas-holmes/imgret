@@ -1,1 +1,1 @@
-web: go run cmd/imgret/main.go
+web: imgret -bind=:80

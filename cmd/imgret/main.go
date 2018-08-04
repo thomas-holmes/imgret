@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
+	"flag"
 	"html/template"
 	"image"
 	"image/color"
@@ -20,7 +21,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/img/", hashHandler)
 
-	if err := http.ListenAndServe(":30000", mux); err != nil {
+	if err := http.ListenAndServe(bind, mux); err != nil {
 		log.Panicln(err)
 	}
 }
@@ -159,10 +160,14 @@ var doc = `
 
 var t *template.Template
 
+var bind string
+
 func init() {
 	var err error
 	t, err = template.New("output.html").Parse(doc)
 	if err != nil {
 		log.Panicln(err)
 	}
+
+	flag.StringVar(&bind, "bind", ":30000", "bind address")
 }
