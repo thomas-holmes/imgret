@@ -170,4 +170,6 @@ func init() {
 	}
 
 	flag.StringVar(&bind, "bind", ":30000", "bind address")
+
+	flag.Parse()
 }
