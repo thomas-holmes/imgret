@@ -25,3 +25,7 @@
     root-package = "github.com/thomas-holmes/imgret"
     go-version = "1.10.3"
     install = "./..."
+
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  version = "1.0.6"

@@ -10,11 +10,12 @@ import (
 	"image/color"
 	"image/png"
 	"io"
-	"log"
 	"net/http"
 	"os/exec"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -27,7 +28,10 @@ func main() {
 }
 
 func timer(label string, start time.Time) {
-	log.Println(label, "after", time.Since(start))
+	log.WithFields(log.Fields{
+		"label":    label,
+		"duration": time.Since(start),
+	}).Info("Measuring operation")
 }
 
 func hashHandler(w http.ResponseWriter, r *http.Request) {
@@ -163,6 +167,8 @@ var t *template.Template
 var bind string
 
 func init() {
+	log.SetFormatter(&log.TextFormatter{})
+
 	var err error
 	t, err = template.New("output.html").Parse(doc)
 	if err != nil {
