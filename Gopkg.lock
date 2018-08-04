@@ -2,12 +2,6 @@
 
 
 [[projects]]
-  name = "github.com/NYTimes/gziphandler"
-  packages = ["."]
-  revision = "2600fb119af974220d3916a5916d6e31176aac1b"
-  version = "v1.0.1"
-
-[[projects]]
   name = "github.com/VividCortex/gohistogram"
   packages = ["."]
   revision = "51564d9861991fb0ad0f531c99ef602d0f9866e6"
@@ -102,6 +96,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "082178ba723154a33ce243bcb776f132ef1ad293398ef325237f61027c050092"
+  inputs-digest = "6bacfe598d3b2690da7b42a00eef9182263b1882bdaed896da040e9f78f33a8e"
   solver-name = "gps-cdcl"
   solver-version = 1
