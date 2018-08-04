@@ -12,43 +12,17 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"os/exec"
 	"strings"
 	"time"
-
-	newrelic "github.com/newrelic/go-agent"
 )
 
-var app newrelic.Application
-
 func main() {
-	var err error
-	key := os.Getenv("NEW_RELIC_LICENSE_KEY")
-	config := newrelic.NewConfig("imgret", key)
-
-	app, err = newrelic.NewApplication(config)
-	if err != nil {
-		log.Println("Couldn't init newrelic", err)
-	}
-
 	mux := http.NewServeMux()
-	mux.HandleFunc(newrelic.WrapHandleFunc(app, "/img/", hashHandler))
+	mux.HandleFunc("/img/", hashHandler)
 
 	if err := http.ListenAndServe(bind, mux); err != nil {
 		log.Panicln(err)
-	}
-}
-
-func timeIt(name string) func(time.Duration) {
-	if app == nil {
-		return func(time.Duration) {
-
-		}
-	}
-
-	return func(d time.Duration) {
-		app.RecordCustomMetric(name, float64(d*time.Millisecond))
 	}
 }
 
@@ -65,7 +39,7 @@ func hashHandler(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	encoder := base64.NewEncoder(base64.StdEncoding, &buf)
 
-	if err := createImage(timeIt("encode"), strings.NewReader(r.URL.Path), encoder); err != nil {
+	if err := createImage(strings.NewReader(r.URL.Path), encoder); err != nil {
 		log.Panicln(err)
 	}
 
@@ -82,18 +56,16 @@ func mustOpen(fileName string) {
 	}
 }
 
-func createImage(timer func(time.Duration), r io.Reader, w io.Writer) error {
+func createImage(r io.Reader, w io.Writer) error {
 	h := sha256.New()
 	io.Copy(h, r)
 
 	sum := h.Sum(nil)
 	bp := bitPNG{bytes: sum, mult: 16}
 
-	n := time.Now()
 	if err := png.Encode(w, bp); err != nil {
 		return err
 	}
-	timer(time.Since(n))
 
 	return nil
 }
