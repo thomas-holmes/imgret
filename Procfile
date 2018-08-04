@@ -1,1 +1,1 @@
-web: imgret -bind=:80
+web: imgret -bind=:$PORT
