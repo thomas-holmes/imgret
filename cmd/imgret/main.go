@@ -30,7 +30,7 @@ func main() {
 	_ = app
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/img/", hashHandler)
+	mux.HandleFunc(newrelic.WrapHandleFunc(app, "/img/", hashHandler))
 
 	if err := http.ListenAndServe(bind, mux); err != nil {
 		log.Panicln(err)
