@@ -53,8 +53,8 @@ func hashHandler(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 
 	log.Println("About to load")
-	if bytes, ok := rc.Load(key); ok {
-		_, err := buf.Read(bytes)
+	if bs, ok := rc.Load(key); ok {
+		_, err := buf.Write(bs)
 		if err != nil {
 			log.WithError(err)
 		}
