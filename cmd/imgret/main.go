@@ -52,10 +52,18 @@ func hashHandler(w http.ResponseWriter, r *http.Request) {
 	key := r.URL.Path
 	var buf bytes.Buffer
 
+	log.Println("About to load")
 	if bytes, ok := rc.Load(key); ok {
-		buf.Read(bytes)
+		_, err := buf.Read(bytes)
+		if err != nil {
+			log.WithError(err)
+		}
+	} else {
+		log.Println("Didn't get bytes")
 	}
+
 	if buf.Len() <= 0 {
+		log.Println("Gave up, recalculating")
 		if err := createImage(strings.NewReader(key), &buf); err != nil {
 			log.Panicln(err)
 		}
