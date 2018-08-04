@@ -30,6 +30,21 @@
   version = "v0.6.0"
 
 [[projects]]
+  name = "github.com/go-redis/redis"
+  packages = [
+    ".",
+    "internal",
+    "internal/consistenthash",
+    "internal/hashtag",
+    "internal/pool",
+    "internal/proto",
+    "internal/singleflight",
+    "internal/util"
+  ]
+  revision = "480db94d33e6088e08d628833b6c0705451d24bb"
+  version = "v6.13.2"
+
+[[projects]]
   branch = "master"
   name = "github.com/heroku/x"
   packages = [
@@ -81,6 +96,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "434e22ad2385223d091d4bd96045e2244419697549b01cafa3c4ba2be9f75956"
+  inputs-digest = "6bacfe598d3b2690da7b42a00eef9182263b1882bdaed896da040e9f78f33a8e"
   solver-name = "gps-cdcl"
   solver-version = 1

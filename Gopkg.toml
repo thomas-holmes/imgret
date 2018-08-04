@@ -37,3 +37,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/joeshaw/envdecode"
+
+[[constraint]]
+  name = "github.com/go-redis/redis"
+  version = "6.13.2"

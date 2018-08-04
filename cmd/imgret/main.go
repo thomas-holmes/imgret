@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/metrics"
+	"github.com/go-redis/redis"
 	"github.com/joeshaw/envdecode"
 
 	hmetrics "github.com/heroku/x/go-kit/metrics"
@@ -48,14 +49,30 @@ func hashHandler(w http.ResponseWriter, r *http.Request) {
 		ImageDataBase64 string
 	}
 
+	key := r.URL.Path
 	var buf bytes.Buffer
-	encoder := base64.NewEncoder(base64.StdEncoding, &buf)
 
-	if err := createImage(strings.NewReader(r.URL.Path), encoder); err != nil {
-		log.Panicln(err)
+	if bytes, ok := rc.Load(key); ok {
+		buf.Read(bytes)
+	} else {
+		if err := createImage(strings.NewReader(key), &buf); err != nil {
+			log.Panicln(err)
+		}
+		if err := rc.Store(key, buf.Bytes()); err != nil {
+			log.Warn("Failed to store", err)
+		}
 	}
 
-	if err := t.Execute(w, data{buf.String()}); err != nil {
+	var b64 bytes.Buffer
+
+	encoder := base64.NewEncoder(base64.StdEncoding, &b64)
+
+	_, err := encoder.Write(buf.Bytes())
+	if err != nil {
+		log.Panic(err)
+	}
+
+	if err = t.Execute(w, data{b64.String()}); err != nil {
 		log.Panicln(err)
 	}
 }
@@ -180,6 +197,7 @@ var encodeHisto metrics.Histogram
 type config struct {
 	LibratoUser     string `env:"LIBRATO_USER"`
 	LibratoPassword string `env:"LIBRATO_TOKEN"`
+	RedisURL        string `env:"REDIS_URL"`
 }
 
 func init() {
@@ -209,4 +227,47 @@ func init() {
 	provider = librato.New(libratoURL, time.Duration(30*time.Second))
 
 	encodeHisto = provider.NewHistogram("encode.time", 3)
+
+	redisCfg, err := redis.ParseURL(cfg.RedisURL)
+	if err != nil {
+		log.Warn("Couldn't parse redis url")
+		rc = noCache{}
+	} else {
+		rc = redisCache{redis.NewClient(redisCfg)}
+	}
+}
+
+type cache interface {
+	Load(key string) ([]byte, bool)
+	Store(key string, bytes []byte) error
+}
+
+type redisCache struct {
+	*redis.Client
+}
+
+func (rc redisCache) Load(key string) ([]byte, bool) {
+	b, err := rc.Get(key).Bytes()
+	if err != nil {
+		return nil, false
+	}
+
+	return b, true
+}
+
+func (rc redisCache) Store(key string, bytes []byte) error {
+	return rc.Set(key, bytes, 0).Err()
+}
+
+var rc cache
+
+type noCache struct {
+}
+
+func (c noCache) Load(key string) ([]byte, bool) {
+	return nil, false
+}
+
+func (c noCache) Store(key string, bytes []byte) error {
+	return nil
 }
