@@ -2,10 +2,54 @@
 
 
 [[projects]]
+  name = "github.com/VividCortex/gohistogram"
+  packages = ["."]
+  revision = "51564d9861991fb0ad0f531c99ef602d0f9866e6"
+  version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/axiomhq/hyperloglog"
+  packages = ["."]
+  revision = "fe9507de02284497dca36b7bb982cb4881a35837"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/dgryski/go-metro"
+  packages = ["."]
+  revision = "280f6062b5bc97ee9b9afe7f2ccb361e59845baa"
+
+[[projects]]
+  name = "github.com/go-kit/kit"
+  packages = [
+    "metrics",
+    "metrics/generic",
+    "metrics/internal/lv"
+  ]
+  revision = "4dc7be5d2d12881735283bcab7352178e190fc71"
+  version = "v0.6.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/heroku/x"
+  packages = [
+    "go-kit/metrics",
+    "go-kit/metrics/provider/librato",
+    "scrub"
+  ]
+  revision = "1de401e1ba0e5db3e5c15d2faeee777e0b685700"
+
+[[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   revision = "3e01752db0189b9157070a0e1668a620f9a85da2"
   version = "v1.0.6"
+
+[[projects]]
+  name = "github.com/yourbasic/fenwick"
+  packages = ["."]
+  revision = "7cb325001daae879940edf7b19da8557a51ca5f7"
+  version = "1.2.0"
 
 [[projects]]
   branch = "master"
@@ -22,9 +66,15 @@
   ]
   revision = "0ffbfd41fbef8ffcf9b62b0b0aa3a5873ed7a4fe"
 
+[[projects]]
+  name = "gopkg.in/caio/go-tdigest.v2"
+  packages = ["."]
+  revision = "00da6c12f7097091d63b69ac773275dfe6df6020"
+  version = "v2.0.2"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d5f1c34ef33db1a8fcdf0630101590c64eda4076248f149b85d8a27de374029e"
+  inputs-digest = "3057adc628120a66c0ca5a3118318ed6a1d389da767e89ca405f4c6580bbf4be"
   solver-name = "gps-cdcl"
   solver-version = 1

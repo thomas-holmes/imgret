@@ -11,12 +11,17 @@ import (
 	"image/png"
 	"io"
 	"net/http"
+	"net/url"
 	"os/exec"
 	"strings"
 	"time"
 
+	"github.com/heroku/x/go-kit/metrics"
+	"github.com/heroku/x/go-kit/metrics/provider/librato"
 	log "github.com/sirupsen/logrus"
 )
+
+var provider metrics.Provider
 
 func main() {
 	mux := http.NewServeMux()
@@ -166,6 +171,8 @@ var t *template.Template
 
 var bind string
 
+var encodeHist metrics.Histogram
+
 func init() {
 	log.SetFormatter(&log.TextFormatter{})
 
@@ -178,4 +185,12 @@ func init() {
 	flag.StringVar(&bind, "bind", ":30000", "bind address")
 
 	flag.Parse()
+
+	libratoURL, err := url.Parse("https://metrics-api.librato.com/v1/measurements")
+	if err != nil {
+		log.Panic(err)
+	}
+	provider = librato.New(libratoURL, time.Duration(30*time.Second))
+
+	encodeHist = provider.NewHistogram("encode.time", 3)
 }
