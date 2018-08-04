@@ -63,6 +63,7 @@ func hashHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if buf.Len() <= 0 {
+		cacheCounter.With("miss").Add(1)
 		log.Println("Gave up, recalculating")
 		if err := createImage(strings.NewReader(key), &buf); err != nil {
 			log.Panicln(err)
@@ -70,6 +71,8 @@ func hashHandler(w http.ResponseWriter, r *http.Request) {
 		if err := rc.Store(key, buf.Bytes()); err != nil {
 			log.Warn("Failed to store", err)
 		}
+	} else {
+		cacheCounter.With("hit").Add(1)
 	}
 
 	var b64 bytes.Buffer
@@ -202,6 +205,7 @@ var t *template.Template
 
 var bind string
 var encodeHisto metrics.Histogram
+var cacheCounter metrics.Counter
 
 type config struct {
 	LibratoUser     string `env:"LIBRATO_USER"`
@@ -236,6 +240,7 @@ func init() {
 	provider = librato.New(libratoURL, time.Duration(30*time.Second))
 
 	encodeHisto = provider.NewHistogram("encode.time", 3)
+	cacheCounter = provider.NewCounter("cache")
 
 	redisCfg, err := redis.ParseURL(cfg.RedisURL)
 	if err != nil {
