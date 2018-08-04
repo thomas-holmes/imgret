@@ -79,7 +79,7 @@ func createImage(r io.Reader, w io.Writer) error {
 	if err := png.Encode(w, bp); err != nil {
 		return err
 	}
-	encodeHisto.Observe(float64(time.Since(b) * time.Millisecond))
+	encodeHisto.Observe(float64(time.Since(b) / 1e6)) // Convert to ms
 
 	return nil
 }
