@@ -12,7 +12,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -81,14 +80,6 @@ func hashHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = t.Execute(w, data{b64.String()}); err != nil {
-		log.Panicln(err)
-	}
-}
-
-func mustOpen(fileName string) {
-	cmd := exec.Command("xdg-open", fileName)
-	err := cmd.Run()
-	if err != nil {
 		log.Panicln(err)
 	}
 }
