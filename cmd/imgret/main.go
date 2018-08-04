@@ -54,7 +54,8 @@ func hashHandler(w http.ResponseWriter, r *http.Request) {
 
 	if bytes, ok := rc.Load(key); ok {
 		buf.Read(bytes)
-	} else {
+	}
+	if buf.Len() <= 0 {
 		if err := createImage(strings.NewReader(key), &buf); err != nil {
 			log.Panicln(err)
 		}
@@ -256,6 +257,11 @@ func (rc redisCache) Load(key string) ([]byte, bool) {
 }
 
 func (rc redisCache) Store(key string, bytes []byte) error {
+	log.WithFields(log.Fields{
+		"operation": "store",
+		"key":       key,
+		"bytes":     bytes,
+	})
 	return rc.Set(key, bytes, 0).Err()
 }
 
