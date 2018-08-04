@@ -28,7 +28,7 @@ var provider hmetrics.Provider
 
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/img/", hashHandler)
+	mux.HandleFunc("/", hashHandler)
 
 	if err := http.ListenAndServe(bind, mux); err != nil {
 		log.Panicln(err)
