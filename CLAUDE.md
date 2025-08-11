@@ -127,3 +127,38 @@ The `bitPNG` struct implements Go's `image.Image` interface:
 - `github.com/go-kit/kit` v0.13.0: Microservice toolkit for metrics
 - `github.com/heroku/x`: Heroku-specific utilities for Librato metrics
 - `github.com/joeshaw/envdecode`: Environment variable decoding
+
+## Continuous Integration
+
+The project uses GitHub Actions for CI/CD:
+
+- **Workflow**: `.github/workflows/ci.yml`
+- **Testing**: Runs on Go versions 1.21.x, 1.22.x, and 1.23.x
+- **Steps**: Downloads dependencies, runs `go vet`, executes tests with race detection and coverage
+- **Cross-compilation**: Builds binaries for Linux, macOS, and Windows
+- **Artifacts**: Uploads cross-platform binaries for each successful build
+- **Coverage**: Reports test coverage (currently 0% - no unit tests exist)
+
+### CI Commands
+```bash
+# Run the same checks locally as CI does
+go mod verify
+go vet ./...
+go test -race -coverprofile=coverage.out -covermode=atomic ./...
+go build -o imgret cmd/imgret/main.go
+
+# Or use the convenient Makefile target
+make ci
+```
+
+### Additional Makefile Targets
+```bash
+# Show all available targets
+make help
+
+# Build cross-platform binaries
+make ci-build
+
+# Clean all artifacts
+make clean
+```
