@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        go-version: [1.21.x, 1.22.x, 1.23.x]
+    
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+      
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go-version }}
+        cache: true
+        
+    - name: Download dependencies
+      run: go mod download
+      
+    - name: Verify dependencies
+      run: go mod verify
+      
+    - name: Run go vet
+      run: go vet ./...
+      
+    - name: Run tests
+      run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
+      
+    - name: Build application
+      run: go build -o imgret cmd/imgret/main.go
+      
+    - name: Test binary
+      run: ./imgret -h
+      
+    - name: Upload coverage to Codecov
+      if: matrix.go-version == '1.23.x'
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.out
+        fail_ci_if_error: false
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+      
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: 1.23.x
+        cache: true
+        
+    - name: Build for multiple platforms
+      run: |
+        GOOS=linux GOARCH=amd64 go build -o imgret-linux-amd64 cmd/imgret/main.go
+        GOOS=darwin GOARCH=amd64 go build -o imgret-darwin-amd64 cmd/imgret/main.go
+        GOOS=windows GOARCH=amd64 go build -o imgret-windows-amd64.exe cmd/imgret/main.go
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: imgret-binaries
+        path: |
+          imgret-linux-amd64
+          imgret-darwin-amd64
+          imgret-windows-amd64.exe

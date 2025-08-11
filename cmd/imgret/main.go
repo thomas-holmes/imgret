@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"flag"
@@ -16,7 +17,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/metrics"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/joeshaw/envdecode"
 
 	hmetrics "github.com/heroku/x/go-kit/metrics"
@@ -257,7 +258,8 @@ type redisCache struct {
 }
 
 func (rc redisCache) Load(key string) ([]byte, bool) {
-	b, err := rc.Get(key).Bytes()
+	ctx := context.Background()
+	b, err := rc.Get(ctx, key).Bytes()
 	if err != nil {
 		return nil, false
 	}
@@ -270,8 +272,9 @@ func (rc redisCache) Store(key string, bytes []byte) error {
 		"operation": "store",
 		"key":       key,
 		"bytes":     bytes,
-	})
-	return rc.Set(key, bytes, 0).Err()
+	}).Info("Storing in cache")
+	ctx := context.Background()
+	return rc.Set(ctx, key, bytes, 0).Err()
 }
 
 var rc cache
