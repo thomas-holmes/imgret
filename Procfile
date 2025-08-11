@@ -1,1 +1,1 @@
-web: ./imgret -bind=:$PORT
+web: imgret -bind=:$PORT
